@@ -1,4 +1,40 @@
 <!--
+SYNC IMPACT REPORT (v2.3.0)
+Version change: 2.2.0 → 2.3.0
+Rationale: MINOR — adopts one principle inherited from the upstream template
+(jonyfs/spec-kit-extension-template v1.7.0) into this fork's numbering. No
+existing principle removed or redefined.
+
+Added principles:
+- XXV. A Check That Cannot Fail Is Not a Check (upstream XV, renumbered)
+
+Merge resolution recorded:
+- Upstream assigned the number XV to this principle. This fork had already
+  assigned XV to Declarative Routing at v2.0.0, so the inherited principle is
+  adopted as XXV with its text unchanged. Future upstream merges MUST expect this
+  divergence: principle numbers are fork-local from XV onward.
+- Upstream's v1.7.0 sync report is preserved below, labeled as template lineage.
+
+Inherited alongside it (no constitution impact): scripts/test-validator.sh,
+tests/fixtures/invalid-extension/, the CI step invoking them, an install-test
+guard, and the SC-001 revision in specs/001-sdd-master-skill/spec.md.
+
+Interaction with this fork's own gates: Principle XXV binds the two validators
+Principle XV and XXII still owe (routing manifests, orchestration state). Neither
+may be marked done until each has been observed failing against a fixture that
+violates it.
+
+Templates requiring updates:
+- ✅ .specify/templates/* (constitution-driven gates; no edit)
+- ✅ .github/pull_request_template.md (inherited; already forbids ticking an
+  unrun check)
+- ⚠ README.md / CHANGELOG.md (carried from v2.0.0)
+- ⚠ docs/ROUTING.md, docs/HARNESSES.md (carried from v2.0.0 and v2.1.0)
+
+Follow-up TODOs: TODO(SKILL_CATALOG_VERIFICATION) and TODO(HARNESS_VERIFICATION)
+both carried unresolved.
+
+--- PREVIOUS REPORT (v2.2.0) ---
 SYNC IMPACT REPORT (v2.2.0)
 Version change: 2.1.0 → 2.2.0
 Rationale: MINOR — one principle added governing how the orchestrator uses a
@@ -126,6 +162,34 @@ Follow-up TODOs:
   `speckit.baseline`, which is not present in the installed Spec Kit surface of
   this repository. Principle XX governs the resolution; the Skill Routing Catalog
   marks it unverified rather than asserting it.
+
+--- UPSTREAM TEMPLATE REPORT (v1.7.0), merged 2026-07-22 ---
+Inherited from jonyfs/spec-kit-extension-template. Its "XV. A Check That Cannot
+Fail Is Not a Check" is adopted here renumbered as Principle XXV, because this
+fork had already assigned XV to Declarative Routing. Content is unchanged.
+
+SYNC IMPACT REPORT (v1.7.0)
+Version change: 1.6.0 → 1.7.0
+Rationale: MINOR — added one new principle (XV. A Check That Cannot Fail Is Not a
+Check). No existing principle removed or redefined.
+
+Added principles:
+- XV. A Check That Cannot Fail Is Not a Check
+
+Origin: three defects found in a single session, all the same shape — an
+assurance that existed but was never reached.
+- scripts/install-test.sh could not pass on macOS for any package, and was green
+  in CI because it exited early with "no packages found" before reaching the bug.
+- Tasks T040 and T044 were ticked in a bulk regex; both checks, when actually
+  run, found real defects.
+- SC-001 measured a failure mode three independent rounds could not reproduce.
+
+Templates requiring updates:
+- ✅ .specify/templates/* (constitution-driven gates; no edit)
+- ✅ .github/pull_request_template.md (already forbids ticking an unrun check)
+- ✅ README.md, CHANGELOG.md, docs/ (current)
+
+Follow-up TODOs: none deferred.
 
 --- PREVIOUS REPORT (v1.6.0) ---
 Version change: 1.5.0 → 1.6.0
@@ -807,6 +871,36 @@ context to every agent. A graph makes retrieval cheap enough that parallelism pa
 off — but an index that is trusted like a source turns a confident inference into
 a specification, and nobody reviewing the spec can see where the claim came from.
 
+### XXV. A Check That Cannot Fail Is Not a Check
+
+Every gate, assertion, and success criterion MUST be observed failing at least once
+against a case it is supposed to catch, before it is trusted. A gate that has only ever
+passed carries no information: passing and being unreachable produce the same green.
+
+Three specific obligations follow.
+
+**A gate with no subject is not passing.** If a check finds nothing to examine, it MUST
+report that distinctly from success, and a reviewer MUST treat "nothing to check" as an
+unmet gate rather than a met one.
+
+**A checkbox is a claim about a check that ran.** Ticking one without having run the
+corresponding verification is a false statement about the change. Bulk-marking a task
+list is how this happens in practice, so tasks MUST be marked individually, as each is
+actually finished.
+
+**A success criterion MUST be falsifiable by a real baseline.** A criterion measuring
+behavior that an unaided comparison already exhibits cannot distinguish success from the
+absence of a problem. When evaluation refutes a criterion, the criterion is rewritten or
+withdrawn and the refutation is recorded — never quietly dropped, and never restated
+until it passes.
+
+Rationale: This project's own tooling failed all three ways in a single session. The
+install-test gate could not pass on any package for a platform reason, and was green in
+CI because it exited before reaching the bug. Two tasks were ticked in a bulk edit, and
+both checks found real defects once run. A success criterion measured a failure mode
+that three independent rounds could not reproduce. Each was invisible for the same
+reason: an assurance nobody had watched fail.
+
 ## Skill Routing Catalog
 
 The skills this extension routes. `Verified` records how the skill's existence was
@@ -1002,4 +1096,4 @@ plan's Complexity Tracking section or removed.
 Runtime development guidance lives in `CLAUDE.md` and the active feature's
 `plan.md`; neither may contradict this constitution.
 
-**Version**: 2.2.0 | **Ratified**: 2026-07-21 | **Last Amended**: 2026-07-22
+**Version**: 2.3.0 | **Ratified**: 2026-07-21 | **Last Amended**: 2026-07-22
