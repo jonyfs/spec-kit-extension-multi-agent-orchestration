@@ -14,6 +14,9 @@
 # Session scratch
 .remember/now.md
 
+# Knowledge graph build output (derived index, rebuildable)
+graphify-out/
+
 # Python
 __pycache__/
 *.py[cod]
