@@ -8,6 +8,28 @@
 
 **Input**: User description: "Routing manifest schema and verifier. Full design already approved at docs/superpowers/specs/2026-07-22-routing-manifest-schema-design.md — use it as the research input."
 
+## Clarifications
+
+### Session 2026-07-22
+
+- Q: Where does verification look for declaration files? → A: Only in the
+  consuming project's own extension configuration directory. The files shipped
+  inside the package are templates the installation copies out; verification never
+  reads them.
+- Q: Where does the catalog of valid workflow stages come from? → A: Parsed from
+  the governing document's own catalog table, so code and governance cannot
+  diverge. An absent or unreadable table is a loud failure, never an empty list.
+- Q: What form does the verification report take? → A: Human-readable text only.
+  The pass/fail signal is carried by the exit status, which is all an automated
+  gate consumes. No machine-readable output until something needs it.
+- Q: Does this project carry its own declarations, or only ship templates? → A:
+  Both. This project installs its own declarations so the gate has real files to
+  check; a gate whose only input is an empty directory verifies nothing.
+- Q: How is "stage not installed" distinguished from "stage unknown"? → A:
+  Unknown means absent from the governing catalog and is blocking. Not installed
+  means present in the catalog but absent from this project's registered commands,
+  and is informational.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Declare how a skill should run (Priority: P1)
@@ -148,6 +170,9 @@ reports both that the check failed and that it failed for each expected reason.
   cannot render on a plain build console, and is reported as blocking.
 - No declaration files present at all is reported distinctly from success: a
   check with nothing to examine has not passed.
+- The governing document's catalog table being absent, renamed, or reformatted
+  beyond recognition halts the check with an explicit failure naming what could
+  not be read, rather than proceeding against an empty catalog.
 - A workflow stage in the catalog with no declaration is reported as an
   informational gap rather than a failure, because declaring every stage is not
   required.
@@ -160,6 +185,10 @@ reports both that the check failed and that it failed for each expected reason.
 
 - **FR-001**: The system MUST define one declaration file per workflow stage,
   stating the stage it governs.
+- **FR-001a**: Declarations MUST live in the consuming project's own configuration
+  directory for this extension. Verification MUST read only that location. The
+  declaration files shipped inside the package are templates that installation
+  copies out, and verification MUST NOT treat them as a project's declarations.
 - **FR-002**: Declarations MUST reference the provider and model through the name
   of a setting that carries the value, never through a literal provider or model
   name.
@@ -187,6 +216,17 @@ reports both that the check failed and that it failed for each expected reason.
   format does not define.
 - **FR-012**: The system MUST reject a declaration naming a workflow stage absent
   from the project's catalog of known stages.
+- **FR-012a**: The system MUST derive that catalog from the governing document's
+  own catalog table rather than from a copy embedded in the checking logic, so
+  that adding a stage to governance cannot leave the check silently disagreeing.
+- **FR-012b**: The system MUST fail loudly when the governing document or its
+  catalog table is absent or unreadable, and MUST NOT fall back to an empty
+  catalog — an empty catalog would make every declaration appear to name an
+  unknown stage, or make no declaration checkable at all.
+- **FR-012c**: The system MUST distinguish a stage that is unknown, meaning absent
+  from the catalog, from a stage that is merely not installed, meaning present in
+  the catalog but absent from this project's registered commands. The first is
+  blocking; the second is informational.
 - **FR-013**: The system MUST reject a missing, zero, or negative spending ceiling.
 - **FR-014**: The system MUST reject a declaration that both writes artifacts and
   drops context on exhaustion.
@@ -215,6 +255,12 @@ reports both that the check failed and that it failed for each expected reason.
   project provides, on both major operating system families, with equivalent
   behavior.
 - **FR-024**: The system MUST run as an automated gate on every proposed change.
+- **FR-024a**: This project MUST install its own declarations, not merely ship
+  templates, so the gate runs against real files. A gate whose only input is an
+  empty directory reports success while verifying nothing.
+- **FR-024b**: The report MUST be human-readable text, and the pass or fail
+  signal MUST be carried by the run's exit status. No machine-readable report
+  format is required until a consumer needs one.
 - **FR-025**: The system MUST ship documentation describing every declaration
   field, the mapping from each effort level to each provider's own setting with
   the date that mapping was verified, the finding classification, and the stated
@@ -266,6 +312,8 @@ reports both that the check failed and that it failed for each expected reason.
   and in which file, without consulting anyone.
 - **SC-007**: Both operating system families produce identical findings for
   identical declarations.
+- **SC-008**: Adding a stage to the governing catalog makes declarations for that
+  stage valid without any change to the checking logic.
 
 ## Assumptions
 
@@ -282,7 +330,9 @@ reports both that the check failed and that it failed for each expected reason.
   change from outside the project. Such verification is therefore excluded.
 - The stage catalog is the one recorded in the project's governing document, which
   currently lists nine confirmed stages and one unconfirmed. The unconfirmed stage
-  receives no declaration.
+  receives no declaration. Reading that table at run time couples the check to the
+  document's formatting; the accepted trade is that a formatting change breaks the
+  check loudly, which is preferable to a copied list that diverges quietly.
 - Two declarations are written in this feature — one for a read-mostly stage and
   one for a concurrent, writing stage — because these exercise opposite ends of
   the format. Declarations for remaining stages follow once the format has been
