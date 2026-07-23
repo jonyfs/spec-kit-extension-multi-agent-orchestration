@@ -1,0 +1,24 @@
+---
+# clarify amends spec.md in place; it does not own a new artifact, so output is
+# null. specify owns spec.md. This is what keeps the two from colliding (XVIII).
+schema_version: "1.0"
+skill: "speckit.clarify"
+routing:
+  provider_env: "SPECKIT_CLARIFY_PROVIDER"
+  model_env: "SPECKIT_CLARIFY_MODEL"
+  reasoning_effort: "low"
+  ui_render:
+    color: "#F2994A"
+    terminal_ansi: "33"
+governance:
+  token_guardrails:
+    max_total_tokens: 120000
+    action_on_limit: "halt"
+execution_strategy:
+  parallelism_mode: "serial"
+context:
+  retrieval:
+    enabled: false
+artifacts:
+  output: null
+  writes_artifacts: true

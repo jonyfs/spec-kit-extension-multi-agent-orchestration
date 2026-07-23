@@ -6,12 +6,27 @@ interactive confirmation is available, the log color depth, the concurrency mode
 (which determines whether Principle XXI macro-parallelism is possible), and
 whether the graphify retrieval tool is available.
 
-> **Every row is `unverified`.** Counting harnesses is not supporting them
+> **Almost every row is `unverified`.** Counting harnesses is not supporting them
 > (Principle XVI, XX). A row becomes `verified` only when a real executed run or
 > that harness's current documentation has been recorded here with a date. The
 > README MUST NOT claim a harness this table has not verified.
 >
-> `TODO(HARNESS_VERIFICATION)`: all rows below are unverified as of 2026-07-22.
+> Two rows are `verified` as of 2026-07-23, each against a real executed run of
+> the routing verifier, and each scoped to exactly what that run exercised:
+>
+> - **Claude Code CLI** — `validate-routing.py` was run in this harness, reading
+>   the manifests directly from the working tree; `graphify` resolved on PATH;
+>   ANSI rendered; interactive confirmation and git worktrees were available.
+> - **GitHub Actions** — the CI `routing` job ran the verifier on an ubuntu-latest
+>   runner, reading manifests from the `actions/checkout` working tree, with no
+>   interactive confirmation and ANSI in the build console
+>   (`spec-kit-extension-multi-agent-orchestration` PR #2, run 29975597363).
+>   What is verified is manifests-reach-the-run-via-checkout; **env injection of
+>   the provider/model variables was not exercised** (they were unset and produced
+>   advisories), so that mechanism remains unverified for this harness.
+>
+> `TODO(HARNESS_VERIFICATION)`: every other row below is unverified as of
+> 2026-07-23.
 
 ## Categories
 
@@ -19,7 +34,7 @@ whether the graphify retrieval tool is available.
 
 | Engine | Values reach the run via | Interactive confirm | Color | Concurrency | graphify | Status |
 |---|---|---|---|---|---|---|
-| GitHub Actions | step `env:` injection | no | ANSI in build console | separate runners | usually absent | unverified |
+| GitHub Actions | `actions/checkout` working tree (verified); step `env:` injection (unverified) | no | ANSI in build console | separate runners | usually absent | **verified 2026-07-23** (checkout path only) |
 | GitLab CI | job `variables` | no | ANSI | separate runners | usually absent | unverified |
 | CircleCI | context/job env | no | ANSI | separate executors | usually absent | unverified |
 | Travis CI | env in `.travis.yml` | no | ANSI | separate VMs | usually absent | unverified |
@@ -55,7 +70,7 @@ whether the graphify retrieval tool is available.
 
 | Engine | Values reach the run via | Interactive confirm | Color | Concurrency | graphify | Status |
 |---|---|---|---|---|---|---|
-| Claude Code CLI | working tree, shell env | yes | ANSI streamed | worktrees | installable | unverified |
+| Claude Code CLI | working tree, shell env | yes | ANSI streamed | worktrees | on PATH here | **verified 2026-07-23** |
 | GitHub Copilot CLI | shell env | yes | ANSI | shared checkout | installable | unverified |
 | Cursor | workspace env | yes | ANSI | shared checkout | installable | unverified |
 | Local routers | shell env | varies | ANSI | varies | installable | unverified |

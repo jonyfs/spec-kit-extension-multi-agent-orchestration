@@ -1,0 +1,30 @@
+---
+# analyze is read-only: it owns nothing and writes nothing. truncate_context is
+# therefore legal here (XVII permits it only for non-writing stages).
+schema_version: "1.0"
+skill: "speckit.analyze"
+routing:
+  provider_env: "SPECKIT_ANALYZE_PROVIDER"
+  model_env: "SPECKIT_ANALYZE_MODEL"
+  reasoning_effort: "high"
+  ui_render:
+    color: "#EB5757"
+    terminal_ansi: "31"
+governance:
+  token_guardrails:
+    max_total_tokens: 200000
+    action_on_limit: "truncate_context"
+    truncation_priority:
+      - "lowest-relevance-graph-nodes"
+      - "sibling-feature-specs"
+      - "historical-changelog"
+execution_strategy:
+  parallelism_mode: "serial"
+context:
+  retrieval:
+    enabled: true
+    query_budget_tokens: 8000
+    traversal: "bfs"
+artifacts:
+  output: null
+  writes_artifacts: false

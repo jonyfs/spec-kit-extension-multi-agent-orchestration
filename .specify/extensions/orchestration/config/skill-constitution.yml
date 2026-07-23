@@ -1,0 +1,23 @@
+---
+# This project's routing declaration for the constitution stage. Real (spec FR-024a).
+schema_version: "1.0"
+skill: "speckit.constitution"
+routing:
+  provider_env: "SPECKIT_CONSTITUTION_PROVIDER"
+  model_env: "SPECKIT_CONSTITUTION_MODEL"
+  reasoning_effort: "max"
+  ui_render:
+    color: "#4A90E2"
+    terminal_ansi: "34"
+governance:
+  token_guardrails:
+    max_total_tokens: 150000
+    action_on_limit: "halt"
+execution_strategy:
+  parallelism_mode: "serial"
+context:
+  retrieval:
+    enabled: false
+artifacts:
+  output: ".specify/memory/constitution.md"
+  writes_artifacts: true

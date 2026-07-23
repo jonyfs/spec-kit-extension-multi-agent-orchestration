@@ -1,0 +1,22 @@
+---
+schema_version: "1.0"
+skill: "speckit.checklist"
+routing:
+  provider_env: "SPECKIT_CHECKLIST_PROVIDER"
+  model_env: "SPECKIT_CHECKLIST_MODEL"
+  reasoning_effort: "low"
+  ui_render:
+    color: "#BDBDBD"
+    terminal_ansi: "37"
+governance:
+  token_guardrails:
+    max_total_tokens: 60000
+    action_on_limit: "halt"
+execution_strategy:
+  parallelism_mode: "serial"
+context:
+  retrieval:
+    enabled: false
+artifacts:
+  output: "checklists/requirements.md"
+  writes_artifacts: true

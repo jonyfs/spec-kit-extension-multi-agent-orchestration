@@ -1,0 +1,25 @@
+---
+# converge appends to tasks.md; tasks owns it. converge owns no new file (XVIII).
+schema_version: "1.0"
+skill: "speckit.converge"
+routing:
+  provider_env: "SPECKIT_CONVERGE_PROVIDER"
+  model_env: "SPECKIT_CONVERGE_MODEL"
+  reasoning_effort: "medium"
+  ui_render:
+    color: "#6FCF97"
+    terminal_ansi: "96"
+governance:
+  token_guardrails:
+    max_total_tokens: 100000
+    action_on_limit: "halt"
+execution_strategy:
+  parallelism_mode: "serial"
+context:
+  retrieval:
+    enabled: true
+    query_budget_tokens: 5000
+    traversal: "bfs"
+artifacts:
+  output: null
+  writes_artifacts: true
