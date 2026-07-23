@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jonyfs/spec-kit-extension-multi-agent-orchestration/routing-manifest.schema.json",
+  "title": "Routing Manifest",
+  "description": "One workflow stage's declared execution contract. Constitution Principles XV-XX, XXIII, XXIV. This is a declaration the verifier checks; it does not route.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "skill", "routing", "governance", "artifacts"],
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "description": "Manifest format version. Only \"1.0\" exists."
+    },
+    "skill": {
+      "type": "string",
+      "pattern": "^speckit\\.[a-z0-9-]+$",
+      "description": "The workflow stage this manifest governs. Must appear in the constitution's Skill Routing Catalog."
+    },
+    "routing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider_env", "model_env", "reasoning_effort", "ui_render"],
+      "properties": {
+        "provider_env": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Name of the environment variable carrying the provider. Principle XIX: never a literal provider name."
+        },
+        "model_env": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Name of the environment variable carrying the model. Principle XIX: never a literal model identifier."
+        },
+        "reasoning_effort": {
+          "enum": ["low", "medium", "high", "max"],
+          "description": "Effort on the closed ladder. Principle XXIII: no provider-native knob is permitted anywhere in this manifest."
+        },
+        "ui_render": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["color", "terminal_ansi"],
+          "properties": {
+            "color": {
+              "type": "string",
+              "pattern": "^#[0-9A-Fa-f]{6}$",
+              "description": "24-bit log color as a hex value."
+            },
+            "terminal_ansi": {
+              "type": "string",
+              "pattern": "^[0-9;]+$",
+              "description": "ANSI SGR code(s) for a plain terminal. Principle XVI: a harness with no 24-bit color must still render the stage."
+            }
+          }
+        }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["token_guardrails"],
+      "properties": {
+        "token_guardrails": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["max_total_tokens", "action_on_limit"],
+          "properties": {
+            "max_total_tokens": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "description": "Spending ceiling in tokens. Principle XVII: absent, zero, or negative aborts the stage."
+            },
+            "action_on_limit": {
+              "enum": ["halt", "checkpoint_and_halt", "truncate_context"],
+              "description": "Behavior when the ceiling is reached. truncate_context is permitted only for non-writing stages (checked by the verifier)."
+            },
+            "truncation_priority": {
+              "type": "array",
+              "minItems": 1,
+              "items": {"type": "string", "minLength": 1},
+              "description": "Context sources to drop, lowest priority first. Required exactly when action_on_limit is truncate_context."
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {"action_on_limit": {"const": "truncate_context"}}
+              },
+              "then": {
+                "required": ["truncation_priority"]
+              }
+            }
+          ]
+        }
+      }
+    },
+    "execution_strategy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["parallelism_mode"],
+      "properties": {
+        "parallelism_mode": {
+          "enum": ["serial", "waves"],
+          "description": "serial runs one unit at a time; waves runs bounded concurrent units."
+        },
+        "max_concurrent_agents": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "description": "Concurrency cap. Principle XVIII: required when parallelism_mode is waves (checked by the verifier)."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"parallelism_mode": {"const": "waves"}}
+          },
+          "then": {
+            "required": ["max_concurrent_agents"]
+          }
+        }
+      ]
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "retrieval": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled"],
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Whether this stage retrieves context from the graphify knowledge graph. Principle XXIV: absence of graphify degrades to a warning, never an error."
+            },
+            "query_budget_tokens": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "description": "Token budget for retrieval, counted against the stage's total. Required when enabled is true (checked by the verifier)."
+            },
+            "traversal": {
+              "enum": ["bfs", "dfs"],
+              "description": "Graph traversal strategy for retrieval."
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {"enabled": {"const": true}}
+              },
+              "then": {
+                "required": ["query_budget_tokens", "traversal"]
+              }
+            }
+          ]
+        }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output", "writes_artifacts"],
+      "properties": {
+        "output": {
+          "type": ["string", "null"],
+          "description": "The single file this stage owns exclusively, or null when it owns no single file. Principle XVIII: no two stages may declare the same output."
+        },
+        "writes_artifacts": {
+          "type": "boolean",
+          "description": "Whether the stage writes artifacts at all. Principle XVII: a writing stage may not use truncate_context."
+        }
+      }
+    }
+  }
+}

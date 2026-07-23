@@ -1,0 +1,12 @@
+---
+schema_version: "1.0"
+skill: "speckit.implement"
+routing:
+  provider_env: "P"
+  model_env: "M"
+  reasoning_effort: "medium"
+  ui_render: {color: "#2196F3", terminal_ansi: "92"}
+governance:
+  token_guardrails: {max_total_tokens: 1500000, action_on_limit: "checkpoint_and_halt"}
+execution_strategy: {parallelism_mode: "waves"}
+artifacts: {output: null, writes_artifacts: true}

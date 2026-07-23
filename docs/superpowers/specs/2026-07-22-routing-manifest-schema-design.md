@@ -35,7 +35,7 @@ behavior that does not exist.
 The repository's `template/` directory becomes this extension's package,
 replacing the inherited `trace` reference extension.
 
-```
+```text
 template/
 ├── extension.yml                      # id: orchestration
 ├── routing-manifest.schema.json       # normative, JSON Schema draft 2020-12

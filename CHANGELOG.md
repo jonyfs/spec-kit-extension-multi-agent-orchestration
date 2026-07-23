@@ -9,11 +9,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `trace` reference extension in `template/` — a read-only feature-traceability check
-  (`speckit.trace.check`) that reports stories with no tagged tasks, tasks citing
-  undefined requirement IDs, duplicate IDs, and surviving `[NEEDS CLARIFICATION]`
-  markers. Ships bash and PowerShell at parity and exists to be copied as the starting
-  point for a new extension.
+- **Multi-agent orchestration scope.** This repository is now the routing
+  orchestration extension itself. The constitution advanced from 1.6.0 to 2.3.0
+  across four amendments, adding Principles XV–XX (declarative routing, harness
+  agnosticism, fail-closed token guardrails, bounded parallelism, model IDs as
+  configuration, route-only-verified-skills), XXI–XXIII (worktree-isolated
+  macro-parallelism, auditable non-authoritative orchestration state, normalized
+  reasoning effort), XXIV (graph-backed retrieval), and adopting the upstream
+  template's "A Check That Cannot Fail Is Not a Check" as XXV.
+- **`orchestration` extension** in `template/`: a routing-manifest verifier.
+  `speckit.orchestration.check` reads per-skill `skill-{skill}.yml` declarations
+  and reports blocking / advisory / informational findings, failing only on a
+  blocking one. Ships `routing-manifest.schema.json` (JSON Schema draft 2020-12),
+  two manifest templates, a Python verifier, and paired bash/PowerShell wrappers.
+- `template/scripts/python/validate-routing.py` — three-layer verifier (shape,
+  single-manifest semantics, cross-manifest + environment). The stage catalog is
+  parsed from the constitution rather than copied, so code and governance cannot
+  diverge (Principle XX).
+- `scripts/test-routing-validator.sh` and `tests/fixtures/{valid,invalid}-routing/`
+  — assert the routing verifier rejects a broken manifest set for each planted
+  reason and passes a valid one (Principle XXV). CI gains a `routing` job running
+  both against this project's own dogfood declarations in
+  `.specify/extensions/orchestration/config/`.
+- `docs/ROUTING.md` (manifest field reference, effort ladder, severity model,
+  stated non-coverage) and `docs/HARNESSES.md` (harness capability matrix, every
+  row `unverified`).
+- Feature artifacts under `specs/002-routing-manifest-verifier/`
+  (spec, plan, tasks, checklist) and the approved design under
+  `docs/superpowers/specs/`.
+
+### Removed
+
+- The `trace` reference extension that previously occupied `template/`, superseded
+  by `orchestration`. Its history remains on the `upstream` template.
 
 - `scripts/test-validator.sh` and `tests/fixtures/invalid-extension/` — assert that
   the manifest validator rejects a package violating six rules, and rejects it for the

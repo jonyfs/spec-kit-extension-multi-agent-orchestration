@@ -1,0 +1,19 @@
+---
+schema_version: "1.0"
+skill: "speckit.plan"
+routing:
+  provider_env: "FIXTURE_PROVIDER"
+  model_env: "FIXTURE_MODEL"
+  reasoning_effort: "high"
+  ui_render:
+    color: "#2D9CDB"
+    terminal_ansi: "36"
+governance:
+  token_guardrails:
+    max_total_tokens: 250000
+    action_on_limit: "halt"
+execution_strategy:
+  parallelism_mode: "serial"
+artifacts:
+  output: "plan.md"
+  writes_artifacts: true

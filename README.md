@@ -1,113 +1,90 @@
-# Spec Kit Extension Template
+# Spec Kit Multi-Agent Orchestration
 
-A template for building [GitHub Spec Kit](https://github.com/github/spec-kit)
-extensions — with the rules, reference docs, and CI gates that keep a published
-extension from breaking in someone else's project.
+A [GitHub Spec Kit](https://github.com/github/spec-kit) extension that governs how
+the spec-driven workflow's stages run across agents and execution harnesses. Each
+stage declares — in YAML, outside any command prose — which provider and model
+handle it, at what reasoning effort, under what token budget, with what
+parallelism, and how its output is rendered. The extension **verifies** those
+declarations against the project's governance; it does not route, because the
+Spec Kit extension mechanism cannot intercept which model a stage runs under.
 
-## What an extension is
+This repository was seeded from
+[`spec-kit-extension-template`](https://github.com/jonyfs/spec-kit-extension-template),
+which remains its `upstream` remote.
 
-A Spec Kit extension is a package that adds namespaced slash commands and
-lifecycle hooks to any Spec Kit project. It installs with:
+## What it does
 
-```bash
-specify extension add --dev /path/to/my-extension
-```
-
-An extension is a manifest plus its referenced files:
-
-```text
-my-extension/
-├── extension.yml            # the contract the CLI validates
-├── README.md
-├── LICENSE
-├── CHANGELOG.md
-├── commands/                # one Markdown file per slash command
-├── scripts/
-│   ├── bash/                # both variants required — the CLI picks by platform
-│   └── powershell/
-└── config-template.yml
-```
-
-## Getting started
-
-1. Read [`.specify/memory/constitution.md`](.specify/memory/constitution.md).
-   It is the source of truth for every rule this repository enforces.
-2. Read [`docs/PACKAGING.md`](docs/PACKAGING.md) to understand how your extension
-   will actually reach users.
-3. Read [`docs/HOOKS.md`](docs/HOOKS.md) before declaring any hook.
-4. Copy [`template/`](template/) and adapt it. It is a working extension, not a
-   skeleton — see below.
-5. Prove it:
+A **routing manifest** (`skill-{skill}.yml`) is one workflow stage's declared
+execution contract. The extension ships a normative JSON Schema for the format and
+a verifier that reports findings at three levels — blocking, advisory,
+informational — and fails a build only on a blocking one. That severity split is
+what lets the same check run on a developer's machine and on a CI runner lacking
+the optional tooling without false alarms.
 
 ```bash
-python scripts/validate-extension.py path/to/my-extension
-bash scripts/install-test.sh
+specify extension add --dev /path/to/template   # installs the orchestration extension
+/speckit.orchestration.check                     # verifies this project's manifests
 ```
 
-## The reference extension
+See [`docs/ROUTING.md`](docs/ROUTING.md) for the manifest field reference, the
+reasoning-effort ladder, and the severity model.
 
-[`template/`](template/) holds `trace`, a small read-only extension that checks a
-feature's artifacts are mechanically consistent — a user story with no tagged tasks, a
-task citing a requirement the spec never defines, duplicate IDs, surviving
-`[NEEDS CLARIFICATION]` markers.
+## The extension
 
-It exists to be copied. Every rule this repository enforces is visible in it working
-rather than described: namespaced commands, a hook that is `optional: true` with a real
-prompt, bash and PowerShell scripts at parity, config that tolerates being absent, and
-no placeholder markers anywhere. Start from it rather than from a blank directory.
+[`template/`](template/) holds the `orchestration` extension: the schema
+(`routing-manifest.schema.json`), two manifest templates under `config/`, the
+`speckit.orchestration.check` command, and paired bash/PowerShell wrappers over a
+single Python verifier. It installs, runs, and removes as a real Spec Kit
+extension.
 
-It is also what keeps `scripts/install-test.sh` honest. Before it existed the script had
-nothing to install and exited green having tested nothing.
-
-## The sdd-master skill
-
-[`.claude/skills/sdd-master/`](.claude/skills/sdd-master/) is a Claude Code skill that
-decides how much process a piece of work warrants and routes accordingly. It is not part
-of the extension template — it is how this repository is built — but it is included
-because the judgment it encodes applies to any spec-driven project.
-
-Its evaluation record is in `specs/001-sdd-master-skill/`, including the round where the
-evaluation disproved one of the spec's own success criteria and the criterion was
-rewritten rather than quietly dropped.
+This project also dogfoods it: [`.specify/extensions/orchestration/config/`](.specify/extensions/orchestration/config/)
+holds this repository's own real routing declarations, and CI verifies them, so
+the gate runs against genuine input rather than an empty directory.
 
 ## Documentation
 
 | Document | What it answers |
 |---|---|
-| [`.specify/memory/constitution.md`](.specify/memory/constitution.md) | What are the non-negotiable rules? |
-| [`docs/PACKAGING.md`](docs/PACKAGING.md) | How does an extension reach a user, and what must the package look like for each path? |
-| [`docs/HOOKS.md`](docs/HOOKS.md) | What are the two hook layers, and how do I avoid confusing them? |
+| [`.specify/memory/constitution.md`](.specify/memory/constitution.md) | The non-negotiable rules — 25 principles governing routing, harnesses, budgets, parallelism, retrieval, and gates. |
+| [`docs/ROUTING.md`](docs/ROUTING.md) | Every manifest field, the effort ladder per provider, the severity model, and what verification does not cover. |
+| [`docs/HARNESSES.md`](docs/HARNESSES.md) | How manifest values reach a run on each harness, and which capabilities each provides. |
+| [`docs/HOOKS.md`](docs/HOOKS.md) | The two hook layers and how to avoid confusing them. |
+| [`docs/PACKAGING.md`](docs/PACKAGING.md) | How an extension reaches a user, and the package layout each path needs. |
 
-## The rules, in brief
+## What is deliberately not here
 
-The constitution defines thirteen principles. The ones that most often bite:
-
-- **Commands are namespaced.** `speckit.{extension-id}.{command}`, and the middle
-  segment must equal your `extension.id`. Command registration is a flat namespace
-  across every installed extension, so a collision silently overwrites someone's
-  working workflow.
-- **Hooks are opt-in.** `optional` defaults to `true`. Omitting it does not make a
-  hook mandatory — and an auto-executing hook fires inside someone else's project,
-  on someone else's branch.
-- **Scripts come in pairs.** Ship `bash` without `powershell` and the extension
-  simply does not work for half its users.
-- **`--dev` passing is not a release.** It proves the working tree is valid. It does
-  not prove the ZIP has the manifest at the right depth or that the release URL
-  resolves. Install the published artifact before submitting a catalog entry.
+- **No executor.** The extension verifies contracts. Acting on manifest values at
+  execution time, if ever built, is separate work.
+- **No live model check.** Verification never asks a provider whether a configured
+  model exists or is in use; that needs a credential a gate on an outside pull
+  request cannot hold.
+- **No unverified claims.** The harness matrix rows are all `unverified` until
+  evidence is recorded; `speckit.baseline` ships no manifest until its existence is
+  confirmed.
 
 ## Validation tooling
 
 | Script | Enforces |
 |---|---|
-| `scripts/validate-extension.py` | Manifest shape, command namespacing, hook events and priorities, script parity |
+| `scripts/validate-extension.py` | Manifest shape, command namespacing, hook events, script parity |
+| `template/scripts/python/validate-routing.py` | Routing manifests against the routing principles |
+| `scripts/test-routing-validator.sh` | That the routing verifier actually rejects a broken set — Principle XXV |
+| `scripts/test-validator.sh` | That the extension validator actually rejects a broken package |
 | `scripts/check-placeholders.sh` | No `CUSTOMIZE:` markers survive into a package |
 | `scripts/install-test.sh` | The install → list → info → remove cycle |
 
-All three run in CI on every pull request.
+All run in CI on every pull request.
+
+## The sdd-master skill
+
+[`.claude/skills/sdd-master/`](.claude/skills/sdd-master/) is a Claude Code skill,
+inherited from the template, that decides how much process a piece of work
+warrants and routes accordingly. It is how this repository is built, not part of
+the shipped extension.
 
 ## Contributing
 
-Work happens on feature branches and lands on `main` through a pull request. CI
+Work happens on feature branches and lands on `main` through a pull request; CI
 must be green before merge. See the constitution's "Development Workflow & Quality
 Gates" section for the full sequence.
 
@@ -115,5 +92,5 @@ Gates" section for the full sequence.
 
 MIT — see [LICENSE](LICENSE).
 
-Spec Kit is a project of GitHub, Inc. This template is not affiliated with or
+Spec Kit is a project of GitHub, Inc. This extension is not affiliated with or
 endorsed by GitHub, Inc.
