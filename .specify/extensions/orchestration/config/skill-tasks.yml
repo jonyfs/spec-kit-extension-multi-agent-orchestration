@@ -1,0 +1,24 @@
+---
+schema_version: "1.0"
+skill: "speckit.tasks"
+routing:
+  provider_env: "SPECKIT_TASKS_PROVIDER"
+  model_env: "SPECKIT_TASKS_MODEL"
+  reasoning_effort: "medium"
+  ui_render:
+    color: "#102A43"
+    terminal_ansi: "94"
+governance:
+  token_guardrails:
+    max_total_tokens: 150000
+    action_on_limit: "halt"
+execution_strategy:
+  parallelism_mode: "serial"
+context:
+  retrieval:
+    enabled: true
+    query_budget_tokens: 6000
+    traversal: "bfs"
+artifacts:
+  output: "tasks.md"
+  writes_artifacts: true

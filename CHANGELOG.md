@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Full routing-manifest coverage.** This project now declares all nine
+  installed workflow stages in `.specify/extensions/orchestration/config/`
+  (constitution, specify, clarify, plan, checklist, tasks, analyze, implement,
+  converge), so the CI routing gate verifies the whole catalog rather than two
+  examples. Amending stages (clarify, converge), the read-only stage (analyze),
+  and implement own no single artifact (`output: null`), which is what keeps
+  specify/clarify and tasks/converge from colliding on one file under Principle
+  XVIII. `speckit.converge` surfaces as INFO "in catalog but not installed",
+  exercising the unknown-vs-uninstalled distinction on a real case.
+- **Two harness rows verified** in `docs/HARNESSES.md` (2026-07-23), each scoped
+  to what a real run exercised: Claude Code CLI (verifier run against the working
+  tree, graphify on PATH) and GitHub Actions (CI routing job reading manifests
+  from the checkout; env injection of routing variables not yet exercised).
+
 - **Multi-agent orchestration scope.** This repository is now the routing
   orchestration extension itself. The constitution advanced from 1.6.0 to 2.3.0
   across four amendments, adding Principles XV–XX (declarative routing, harness

@@ -1,0 +1,22 @@
+---
+schema_version: "1.0"
+skill: "speckit.specify"
+routing:
+  provider_env: "SPECKIT_SPECIFY_PROVIDER"
+  model_env: "SPECKIT_SPECIFY_MODEL"
+  reasoning_effort: "high"
+  ui_render:
+    color: "#27AE60"
+    terminal_ansi: "32"
+governance:
+  token_guardrails:
+    max_total_tokens: 80000
+    action_on_limit: "halt"
+execution_strategy:
+  parallelism_mode: "serial"
+context:
+  retrieval:
+    enabled: false
+artifacts:
+  output: "spec.md"
+  writes_artifacts: true

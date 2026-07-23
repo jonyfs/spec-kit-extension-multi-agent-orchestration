@@ -58,9 +58,9 @@ the gate runs against genuine input rather than an empty directory.
 - **No live model check.** Verification never asks a provider whether a configured
   model exists or is in use; that needs a credential a gate on an outside pull
   request cannot hold.
-- **No unverified claims.** The harness matrix rows are all `unverified` until
-  evidence is recorded; `speckit.baseline` ships no manifest until its existence is
-  confirmed.
+- **No unverified claims.** A harness row is `unverified` until a real run is
+  recorded against it — two are verified so far, the rest are not; and
+  `speckit.baseline` ships no manifest until its existence is confirmed.
 
 ## Validation tooling
 
