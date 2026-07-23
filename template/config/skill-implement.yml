@@ -1,0 +1,34 @@
+---
+# Routing manifest template for the implementation stage (parallel, writes the
+# source tree rather than a single owned file). Copy into your project's
+# .specify/extensions/orchestration/config/ and resolve every CUSTOMIZE marker.
+schema_version: "1.0"
+skill: "speckit.implement"
+
+routing:
+  # CUSTOMIZE: name the environment variables your setup defines for this stage.
+  provider_env: "SPECKIT_IMPLEMENT_PROVIDER"
+  model_env: "SPECKIT_IMPLEMENT_MODEL"
+  reasoning_effort: "medium"        # low | medium | high | max
+  ui_render:
+    color: "#2196F3"
+    terminal_ansi: "92"
+
+governance:
+  token_guardrails:
+    max_total_tokens: 1500000
+    action_on_limit: "checkpoint_and_halt"
+
+execution_strategy:
+  parallelism_mode: "waves"
+  max_concurrent_agents: 4
+
+context:
+  retrieval:
+    enabled: true
+    query_budget_tokens: 8000
+    traversal: "bfs"
+
+artifacts:
+  output: null                      # implement writes the source tree, not one file
+  writes_artifacts: true

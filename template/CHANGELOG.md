@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the `trace` extension are documented in this file.
+All notable changes to the `orchestration` extension are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -11,23 +11,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `speckit.trace.check` command (alias `speckit.trace.verify`): a read-only
-  traceability report for the current feature's `spec.md`, `plan.md` and
-  `tasks.md`.
-- Checks: missing artifacts, `tasks.md` without a `plan.md`, user stories with no
-  tasks, tasks tagged with an undefined user story, tasks citing an undefined
-  requirement ID, duplicate requirement IDs, duplicate task IDs, unresolved
-  `[NEEDS CLARIFICATION]` markers, and optional requirement coverage.
-- Paired implementations `scripts/bash/trace-check.sh` and
-  `scripts/powershell/trace-check.ps1` with identical options, output and exit
-  codes; `--json` / `-Json` for machine consumption.
-- Feature resolution from an explicit selector, `SPECIFY_FEATURE`, the current
-  git branch, or the most recently modified `specs/*/spec.md`.
-- Optional `after_tasks` lifecycle hook, `optional: true` with a prompt.
-- Optional configuration at `.specify/extensions/trace/trace-config.yml` with
-  `requirement_pattern`, `require_requirement_coverage`,
-  `fail_on_needs_clarification` and `warn_only`, overridable via
-  `local-config.yml`.
+- `speckit.orchestration.check` command (alias `speckit.orchestration.verify`): a
+  read-only verifier for a project's routing manifests. Reports findings at three
+  levels — ERROR (blocking), WARN (advisory), INFO — and exits non-zero only on a
+  blocking finding.
+- `routing-manifest.schema.json`: the normative JSON Schema (draft 2020-12) for a
+  routing manifest. `additionalProperties: false` at every level, so a provider's
+  own reasoning knob is a shape error (constitution Principle XXIII).
+- Manifest templates `config/skill-plan.yml` (read-mostly) and
+  `config/skill-implement.yml` (parallel, writing), carrying `CUSTOMIZE` markers.
+- `scripts/python/validate-routing.py`: the three-layer verifier — shape against
+  the schema, single-manifest semantics, and cross-manifest plus environment
+  checks. The catalog of valid stages is parsed from the project's constitution
+  rather than copied, so code and governance cannot diverge (Principle XX).
+- Paired `scripts/bash/routing-check.sh` and
+  `scripts/powershell/routing-check.ps1`, both thin wrappers over the Python
+  verifier so their behavior is identical by construction (Principle V).
 
-[Unreleased]: https://github.com/jonyfs/spec-kit-extension-template/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/jonyfs/spec-kit-extension-template/releases/tag/v1.0.0
+### Notes
+
+- This extension verifies declared contracts; it does not route. The Spec Kit
+  extension mechanism cannot intercept model selection.
+- Supersedes the `trace` reference extension that previously occupied `template/`.
+
+[Unreleased]: https://github.com/jonyfs/spec-kit-extension-multi-agent-orchestration/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/jonyfs/spec-kit-extension-multi-agent-orchestration/releases/tag/v1.0.0

@@ -74,6 +74,28 @@ jobs:
         # because passing and being unreachable look identical.
         run: bash scripts/test-validator.sh
 
+  routing:
+    name: Verify routing manifests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install pyyaml jsonschema
+
+      - name: Verify this project's own routing manifests
+        # Principle XV: routing lives in declarative manifests, checked as a gate.
+        # This project installs its own declarations so the gate runs against real
+        # input rather than an empty directory (spec FR-024a).
+        run: python template/scripts/python/validate-routing.py .specify/extensions/orchestration/config
+
+      - name: Prove the routing validator can fail
+        # Principle XXV: a gate that has only ever passed carries no information.
+        run: bash scripts/test-routing-validator.sh
+
   placeholders:
     name: Guard template placeholders
     runs-on: ubuntu-latest

@@ -1,0 +1,15 @@
+---
+schema_version: "1.0"
+skill: "speckit.tasks"
+routing:
+  provider_env: "P"
+  model_env: "M"
+  reasoning_effort: "medium"
+  ui_render: {color: "#102A43", terminal_ansi: "94"}
+governance:
+  token_guardrails:
+    max_total_tokens: 150000
+    action_on_limit: "truncate_context"
+    truncation_priority: ["old-context"]
+execution_strategy: {parallelism_mode: "serial"}
+artifacts: {output: "b.md", writes_artifacts: true}

@@ -1,0 +1,33 @@
+---
+# Routing manifest template for the planning stage (read-mostly, single output).
+# Copy this into your project's .specify/extensions/orchestration/config/ and
+# resolve every CUSTOMIZE marker. Validated against routing-manifest.schema.json.
+schema_version: "1.0"
+skill: "speckit.plan"
+
+routing:
+  # CUSTOMIZE: name the environment variables your setup defines for this stage.
+  provider_env: "SPECKIT_PLAN_PROVIDER"
+  model_env: "SPECKIT_PLAN_MODEL"
+  reasoning_effort: "max"           # low | medium | high | max
+  ui_render:
+    color: "#2D9CDB"
+    terminal_ansi: "36"
+
+governance:
+  token_guardrails:
+    max_total_tokens: 250000
+    action_on_limit: "halt"         # halt | checkpoint_and_halt | truncate_context
+
+execution_strategy:
+  parallelism_mode: "serial"        # planning owns one file; no concurrency
+
+context:
+  retrieval:
+    enabled: true
+    query_budget_tokens: 6000
+    traversal: "bfs"
+
+artifacts:
+  output: "plan.md"                 # this stage owns plan.md exclusively
+  writes_artifacts: true

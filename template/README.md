@@ -1,40 +1,32 @@
-# trace — Feature Traceability Check
+# orchestration — Multi-Agent Routing Verifier
 
-A small, read-only Spec Kit extension that checks whether the current feature's
-`spec.md`, `plan.md` and `tasks.md` still agree with each other.
+A Spec Kit extension that verifies per-skill **routing manifests** against a
+project's governance. A routing manifest (`skill-{skill}.yml`) declares how one
+workflow stage should run — its provider and model by environment reference,
+reasoning effort, token budget and the action taken at the ceiling, parallelism,
+graph retrieval, and which artifact the stage owns exclusively.
 
-It is the reference extension of the
-[spec-kit-extension-template](https://github.com/jonyfs/spec-kit-extension-template)
-repository: a complete, working package that exercises every pattern the template
-documents — a manifest, a namespaced command with an alias, a lifecycle hook,
-paired bash/PowerShell scripts, and an optional config file.
+It **verifies** declarations; it does not route. The Spec Kit extension mechanism
+cannot intercept which model a stage actually runs under, so a manifest is a
+declared contract a reviewer and a CI gate can check, not an instruction the
+runtime obeys.
 
 ## What it checks
 
-All of these are decidable by reading the files, which is exactly why they belong
-in a script rather than in a prompt:
+The verifier reports findings at three levels and fails only on a blocking one:
 
-| Check | Reported when |
-|---|---|
-| Artifact presence | `spec.md` is missing, or `tasks.md` exists without a `plan.md` |
-| Story coverage | A `### User Story N` in `spec.md` has no task tagged `[USN]` |
-| Story orphans | A task is tagged `[USN]` for a story `spec.md` does not define |
-| Requirement orphans | A task cites `FR-042` and `spec.md` defines no `FR-042` |
-| Duplicate requirement IDs | The same requirement ID is defined twice in `spec.md` |
-| Duplicate task IDs | The same `T###` is used by two tasks |
-| Unresolved clarifications | `[NEEDS CLARIFICATION]` survives in `spec.md` |
-| Requirement coverage | A requirement no task cites — off by default, see configuration |
+| Level | Fails? | Examples |
+|---|---|---|
+| ERROR | yes | invalid shape; a provider's own reasoning knob; missing/zero/negative token budget; a writing stage set to drop context; two stages claiming the same output; an unknown stage; a parallel stage claiming a single owned file |
+| WARN | no | an unset provider/model variable; retrieval enabled while graphify is absent; dead truncation config |
+| INFO | no | a manifest for a cataloged but uninstalled stage; the aggregate declared budget |
 
-It also reports counts that are useful without being defects: stories, requirements,
-task completion, and clarification markers.
+Exiting non-zero only on ERROR is what lets the same check run on a developer's
+machine and on a CI runner lacking the optional tooling without false alarms.
 
-## What it deliberately does not do
-
-It does not judge whether a requirement is well-written, whether the plan is sound,
-or whether the tasks would actually implement the spec. Those are semantic
-questions and belong to `/speckit.analyze`. This extension answers only the
-structural one — do the identifiers and sections line up — and answers it the same
-way every time.
+The catalog of valid stages is read from the Skill Routing Catalog table in the
+project's `.specify/memory/constitution.md`, so the check and governance cannot
+diverge.
 
 ## Install
 
@@ -45,16 +37,10 @@ specify extension add --dev /path/to/template
 specify extension list
 ```
 
-From a release ZIP:
-
-```bash
-specify extension add trace --from https://github.com/jonyfs/spec-kit-extension-template/releases/download/v1.0.0/trace-1.0.0.zip
-```
-
 Removal:
 
 ```bash
-specify extension remove trace --force
+specify extension remove orchestration --force
 ```
 
 ### Supported distribution forms
@@ -63,100 +49,66 @@ specify extension remove trace --force
 |---|---|
 | Local directory (`--dev`) | Yes |
 | Custom URL (`--from`) | Yes |
-| Catalog (`specify extension add trace`) | No — not submitted to a catalog |
+| Catalog (`specify extension add orchestration`) | No — not submitted to a catalog |
 | Bundled in the CLI | No — bundling is reserved for core extensions |
 
 ## Usage
 
 ```text
-/speckit.trace.check
-/speckit.trace.check 003-payment-links
+/speckit.orchestration.check
+/speckit.orchestration.check .specify/extensions/orchestration/config
 ```
 
-`speckit.trace.verify` is registered as an alias for the same command.
-
-The scripts can also be run directly, which is how CI would use them:
+`speckit.orchestration.verify` is registered as an alias. The scripts can be run
+directly, which is how CI uses them:
 
 ```bash
-.specify/extensions/trace/scripts/bash/trace-check.sh
-.specify/extensions/trace/scripts/bash/trace-check.sh --json --feature 003-payment-links
+.specify/extensions/orchestration/scripts/bash/routing-check.sh
 ```
 
 ```powershell
-.specify/extensions/trace/scripts/powershell/trace-check.ps1
-.specify/extensions/trace/scripts/powershell/trace-check.ps1 -Json -Feature 003-payment-links
+.specify/extensions/orchestration/scripts/powershell/routing-check.ps1
 ```
 
-Both variants accept the same options and produce the same report and the same
-JSON. Exit codes:
+With no argument they read the project's own configuration directory,
+`.specify/extensions/orchestration/config/`. Exit codes:
 
 | Code | Meaning |
 |---|---|
-| `0` | No findings, or `warn_only` is enabled |
-| `1` | At least one finding |
-| `2` | No feature directory could be resolved |
+| `0` | No blocking findings (advisories and notes may still be present) |
+| `1` | At least one blocking finding, or no manifests found |
 
-### Feature resolution
+Both variants delegate to the same `scripts/python/validate-routing.py`, so their
+behavior is identical by construction (Principle V).
 
-With no explicit selector the scripts resolve the feature in this order:
+## Where manifests live
 
-1. `SPECIFY_FEATURE` environment variable → `specs/$SPECIFY_FEATURE`
-2. Current git branch name → `specs/<branch>`
-3. The most recently modified `specs/*/spec.md`
+Declarations live in the consuming project's own configuration directory,
+`.specify/extensions/orchestration/config/`. The files shipped in this package
+under `config/` are **templates**: copy them, resolve every `CUSTOMIZE` marker,
+and place them in that directory. The verifier never reads the package templates
+as a project's declarations.
 
-## Hook
-
-One lifecycle hook is declared:
-
-| Event | Command | Optional | Priority |
-|---|---|---|---|
-| `after_tasks` | `speckit.trace.check` | `true` | `10` |
-
-It is `optional: true`, so it prompts before running and never fires silently.
-`after_tasks` is the moment the check has the most to say: `tasks.md` has just
-been generated from `plan.md`, and any story or requirement that failed to make
-the crossing is visible immediately rather than during implementation.
-
-The hook is safe to accept at any time because the command only reads files.
+Point your editor at `routing-manifest.schema.json` for completion and inline
+validation while editing a manifest.
 
 ## Configuration
 
-Optional. Installed to `.specify/extensions/trace/trace-config.yml`; deleting the
-file restores the defaults below. Values can be overridden without committing
-them by putting the same keys in `.specify/extensions/trace/local-config.yml`,
-which takes precedence and is gitignored by the CLI convention.
+The extension has no config file of its own; the routing manifests it checks are
+the configuration. See
+[`docs/ROUTING.md`](https://github.com/jonyfs/spec-kit-extension-multi-agent-orchestration/blob/main/docs/ROUTING.md)
+for the full field reference and the reasoning-effort ladder.
 
-| Key | Default | Effect |
-|---|---|---|
-| `requirement_pattern` | `(FR\|NFR\|SC)-[0-9]+` | Extended regex matching a requirement identifier |
-| `require_requirement_coverage` | `false` | Report a requirement no task cites as a finding |
-| `fail_on_needs_clarification` | `true` | Report a surviving `[NEEDS CLARIFICATION]` marker as a finding |
-| `warn_only` | `false` | Report everything but always exit `0` |
+## Requirements
 
-Only flat `key: value` pairs are read; nested mappings and lists are ignored.
+`specify` `>=0.2.0`, Python 3 with `pyyaml` and `jsonschema`. The verifier is
+Python; the bash and PowerShell entry points are thin wrappers over it.
 
-`require_requirement_coverage` defaults to `false` because the stock Spec Kit
-tasks template does not cite requirement IDs in task text at all — turning it on
-in a project that does not follow that convention produces nothing but noise.
-Turn it on when your team writes `T014 [US2] Implement FR-007 …`.
+## What it deliberately does not do
 
-## Conventions it assumes
-
-Derived from the stock Spec Kit templates:
-
-- User stories are headings: `### User Story 2 - Title (Priority: P2)`
-- Requirements are list items whose first bold run is the ID: `- **FR-001**: System MUST …`
-- Tasks are checkbox list items whose first token is the ID: `- [ ] T014 [P] [US2] …`
-- A task's story is tagged in brackets: `[US2]`
-
-A project that uses different conventions can adjust `requirement_pattern`; the
-story and task shapes are fixed, and a project that diverges from them will see
-zero stories or zero tasks reported rather than a wrong answer.
-
-## Compatibility
-
-Requires `specify` `>=0.2.0`. Verified against specify-cli 0.11.3 on macOS with
-bash 3.2 and PowerShell 7.
+It does not check whether a configured model is available to the caller or is the
+one the current session uses — both need an authenticated provider call a gate
+cannot make — and it does not act on manifest values at execution time.
 
 ## License
 

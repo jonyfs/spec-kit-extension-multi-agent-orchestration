@@ -1,0 +1,32 @@
+---
+# This project's own routing declaration for the implementation stage. Real, not
+# a template — the CI routing gate validates this file (spec FR-024a).
+schema_version: "1.0"
+skill: "speckit.implement"
+
+routing:
+  provider_env: "SPECKIT_IMPLEMENT_PROVIDER"
+  model_env: "SPECKIT_IMPLEMENT_MODEL"
+  reasoning_effort: "medium"
+  ui_render:
+    color: "#2196F3"
+    terminal_ansi: "92"
+
+governance:
+  token_guardrails:
+    max_total_tokens: 1500000
+    action_on_limit: "checkpoint_and_halt"
+
+execution_strategy:
+  parallelism_mode: "waves"
+  max_concurrent_agents: 4
+
+context:
+  retrieval:
+    enabled: true
+    query_budget_tokens: 8000
+    traversal: "bfs"
+
+artifacts:
+  output: null
+  writes_artifacts: true

@@ -1,0 +1,13 @@
+---
+schema_version: "1.0"
+skill: "speckit.plan"
+routing:
+  provider_env: "P"
+  model_env: "M"
+  reasoning_effort: "high"
+  ui_render: {color: "#2D9CDB", terminal_ansi: "36"}
+governance:
+  token_guardrails:
+    action_on_limit: "halt"
+execution_strategy: {parallelism_mode: "serial"}
+artifacts: {output: "a.md", writes_artifacts: true}

@@ -2,18 +2,20 @@
 schema_version: "1.0"
 
 extension:
-  id: "trace"
-  name: "Feature Traceability Check"
+  id: "orchestration"
+  name: "Multi-Agent Routing Verifier"
   version: "1.0.0"
   description: >-
-    Mechanically checks that the current feature's spec.md, plan.md and
-    tasks.md stay mutually consistent: every user story has tasks, every
-    requirement ID cited by a task exists, no duplicate IDs, no unresolved
-    clarification markers.
+    Verifies per-skill routing manifests against the project's governance:
+    each declares a workflow stage's provider/model (by environment reference),
+    reasoning effort, token budget and limit action, parallelism, graph
+    retrieval, and exclusive artifact ownership. Reports ERROR/WARN/INFO and
+    fails only on ERROR. It verifies declared contracts; it does not route,
+    because the Spec Kit extension API cannot intercept model selection.
   author: "jonyfs"
-  repository: "https://github.com/jonyfs/spec-kit-extension-template"
+  repository: "https://github.com/jonyfs/spec-kit-extension-multi-agent-orchestration"
   license: "MIT"
-  homepage: "https://github.com/jonyfs/spec-kit-extension-template"
+  homepage: "https://github.com/jonyfs/spec-kit-extension-multi-agent-orchestration"
   category: "quality"
   effect: "read-only"
 
@@ -22,31 +24,32 @@ requires:
 
 provides:
   commands:
-    - name: "speckit.trace.check"
+    - name: "speckit.orchestration.check"
       file: "commands/check.md"
       description: >-
-        Report traceability gaps between the current feature's spec.md,
-        plan.md and tasks.md
+        Verify every routing manifest in the project against the routing
+        principles, reporting blocking, advisory, and informational findings
+      scripts:
+        sh: "scripts/bash/routing-check.sh"
+        ps: "scripts/powershell/routing-check.ps1"
       aliases:
-        - "speckit.trace.verify"
+        - "speckit.orchestration.verify"
   config:
-    - name: "trace-config.yml"
-      template: "trace-config.yml"
+    - name: "routing-manifest.schema.json"
+      template: "routing-manifest.schema.json"
       required: false
-      description: "Requirement ID pattern and strictness switches"
-
-hooks:
-  after_tasks:
-    command: "speckit.trace.check"
-    optional: true
-    priority: 10
-    prompt: "Run the traceability check against the tasks that were just generated?"
-    description: >-
-      Reports user stories with no tasks, tasks citing unknown requirement
-      IDs, duplicate task or requirement IDs, and unresolved
-      [NEEDS CLARIFICATION] markers. Read-only.
+      description: "Normative JSON Schema (draft 2020-12) for a routing manifest"
+    - name: "skill-plan.yml"
+      template: "config/skill-plan.yml"
+      required: false
+      description: "Routing manifest template for the planning stage (read-mostly)"
+    - name: "skill-implement.yml"
+      template: "config/skill-implement.yml"
+      required: false
+      description: "Routing manifest template for the implementation stage (parallel, writing)"
 
 tags:
   - "quality"
-  - "traceability"
-  - "review"
+  - "routing"
+  - "governance"
+  - "multi-agent"

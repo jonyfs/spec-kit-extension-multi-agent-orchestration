@@ -1,0 +1,32 @@
+---
+# This project's own routing declaration for the planning stage. Real, not a
+# template — the CI routing gate validates this file so it runs against genuine
+# input (spec FR-024a). Validated against template/routing-manifest.schema.json.
+schema_version: "1.0"
+skill: "speckit.plan"
+
+routing:
+  provider_env: "SPECKIT_PLAN_PROVIDER"
+  model_env: "SPECKIT_PLAN_MODEL"
+  reasoning_effort: "max"
+  ui_render:
+    color: "#2D9CDB"
+    terminal_ansi: "36"
+
+governance:
+  token_guardrails:
+    max_total_tokens: 250000
+    action_on_limit: "halt"
+
+execution_strategy:
+  parallelism_mode: "serial"
+
+context:
+  retrieval:
+    enabled: true
+    query_budget_tokens: 6000
+    traversal: "bfs"
+
+artifacts:
+  output: "plan.md"
+  writes_artifacts: true
